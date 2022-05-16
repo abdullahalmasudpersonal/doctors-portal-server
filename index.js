@@ -31,7 +31,6 @@ function verifyJWT (req, res, next){
   });
 }
 
-
 async function run() {
   try {
     await client.connect();
@@ -45,6 +44,11 @@ async function run() {
       const services = await cursor.toArray();
       res.send(services);
     });
+
+    app.get('/user', verifyJWT, async(req,res) =>{
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    })
 
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
