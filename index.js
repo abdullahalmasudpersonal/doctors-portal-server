@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+ // const { verify } = require('jsonwebtoken');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,7 +16,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-/* function verifyJWT(req, res, next){
+function verifyJWT (req, res, next){
   const authHeader = req.headers.authorization;
   if(!authHeader){
     return res.status(401).send({message: 'UnAuthorized access'});
@@ -28,7 +29,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
     req.decoded = decoded;
     next();
   });
-} */
+}
+
 
 async function run() {
   try {
@@ -92,15 +94,17 @@ async function run() {
      * app.delete('/booking/:id') //
      * **/
 
-    app.get('/booking', async (req, res) => {
+    app.get('/booking', verifyJWT, async (req, res) => {
       const patient = req.query.patient;
-      const authorization = req.headers.authorization;
-      console.log('auth header', authorization);
+      const decodedEmail = req.decoded.email;
+      if(patient === decodedEmail){
         const query = { patient: patient };
         const bookings = await bookingCollection.find(query).toArray();
         return res.send(bookings);
-      
-
+      }
+      else{
+        return res.status(403).send({message: 'Forbidden access'});
+      }
     })
 
     app.post('/booking', async (req, res) => {
